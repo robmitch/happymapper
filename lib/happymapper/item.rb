@@ -29,8 +29,8 @@ module HappyMapper
     def from_xml_node(node, namespace)
       if primitive?
         find(node, namespace) do |n|
-          if n.respond_to?(:content)
-            typecast(n.content)
+          if n.respond_to?(:text)
+            typecast(n.text)
           else
             typecast(n.to_s)
           end
@@ -38,8 +38,8 @@ module HappyMapper
       else
         if options[:parser]
           find(node, namespace) do |n|
-            if n.respond_to?(:content) && !options[:raw]
-              value = n.content
+            if n.respond_to?(:text) && !options[:raw]
+              value = n.text
             else
               value = n.to_s
             end
@@ -129,21 +129,21 @@ module HappyMapper
       
       def find(node, namespace, &block)
         # this node has a custom namespace (that is present in the doc)
-        if self.namespace && node.namespaces.find_by_prefix(self.namespace)
+          if self.namespace && node.prefixes.detect {|prefix| prefix == self.namespace}
           # from the class definition
           namespace = self.namespace
-        elsif options[:namespace] && node.namespaces.find_by_prefix(options[:namespace])
+        elsif options[:namespace] && node.prefixes.detect {|prefix| prefix == options[:namespace]}
           # from an element definition
           namespace = options[:namespace]
         end
 
         if element?
-          result = node.find_first(xpath(namespace))
+          result = REXML::XPath.first(node, xpath(namespace))
           # puts "vfxn: #{xpath} #{result.inspect}"
           if result
             value = yield(result)
             if options[:attributes].is_a?(Hash)
-              result.attributes.each do |xml_attribute|
+              result.attributes.each_attribute do |xml_attribute|
                 if attribute_options = options[:attributes][xml_attribute.name.to_sym]
                   attribute_value = Attribute.new(xml_attribute.name.to_sym, *attribute_options).from_xml_node(result, namespace)
                   result.instance_eval <<-EOV
@@ -159,7 +159,7 @@ module HappyMapper
             nil
           end
         else
-          yield(node[tag])
+          yield(node.attribute(tag))
         end
       end
   end

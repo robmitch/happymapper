@@ -3,8 +3,7 @@ dir = File.dirname(__FILE__)
 require 'date'
 require 'time'
 require 'rubygems'
-gem 'libxml-ruby', '= 1.1.3'
-require 'xml'
+require 'rexml/document'
 
 class Boolean; end
 
@@ -69,13 +68,13 @@ module HappyMapper
       # locally scoped copy of namespace for this parse run
       namespace = @namespace
 
-      if xml.is_a?(XML::Node)
+      if xml.is_a?(REXML::Node)
         node = xml
       else
-        if xml.is_a?(XML::Document)
+        if xml.is_a?(REXML::Document)
           node = xml.root
         else
-          node = XML::Parser.string(xml).parse.root
+          node = REXML::Document.new(xml).root
         end
 
         root = node.name == tag_name
@@ -96,7 +95,7 @@ module HappyMapper
       xpath += "#{namespace}:" if namespace
       xpath += tag_name
       
-      nodes = node.find(xpath)
+      nodes = REXML::XPath.match(node, xpath)
       collection = nodes.collect do |n|
         obj = new
         

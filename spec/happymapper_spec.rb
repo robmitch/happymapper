@@ -403,7 +403,7 @@ describe HappyMapper do
     first.truncated.should be_false
     first.in_reply_to_status_id.should == 1234
     first.in_reply_to_user_id.should == 12345
-    first.favorited.should be_false
+    first.favorited.should be_nil
     first.user.id.should == 4243
     first.user.name.should == 'John Nunemaker'
     first.user.screen_name.should == 'jnunemaker'
